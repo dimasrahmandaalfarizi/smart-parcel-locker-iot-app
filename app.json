@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Smart Locker App",
+    "slug": "smart-locker-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/icons/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./src/assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#121212"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/icons/icon.png",
+        "backgroundColor": "#121212"
+      }
+    },
+    "web": {
+      "favicon": "./src/assets/icons/icon.png"
+    }
+  }
+}
