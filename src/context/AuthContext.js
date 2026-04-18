@@ -1,5 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
+import api from '../services/api';
 
 export const AuthContext = createContext();
 
@@ -8,26 +10,41 @@ export const AuthProvider = ({ children }) => {
   const [userToken, setUserToken] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     setIsLoading(true);
-    // MOCK LOGIN LOGIC: Pura-pura menghubungi backend/API
-    setTimeout(async () => {
-      let role = 'user';
-      if (username.toLowerCase() === 'admin') role = 'admin';
-      if (username.toLowerCase() === 'kurir') role = 'courier';
-
-      const dummyToken = 'dummy-jwt-token-12345';
-      const dummyUser = { username, role };
-
-      setUserToken(dummyToken);
-      setUserInfo(dummyUser);
+    try {
+      // Memanggil Real Backend API (Sesuai breafingApi.md: POST /api/auth/login)
+      const response = await api.post('/auth/login', { email, password });
       
-      // Simpan di memori lokal agar tetap login jika app direfresh
-      await AsyncStorage.setItem('userToken', dummyToken);
-      await AsyncStorage.setItem('userInfo', JSON.stringify(dummyUser));
+      const resData = response.data;
+      // Berdasarkan skema, backend mengembalikan JWT token 
+      const token = resData.token;
       
-      setIsLoading(false);
-    }, 1500); // Simulasi delay loading internet 1.5 detik
+      // Jika resData memiliki object user, atau menggunakan email & role dari JSON langsung
+      const user = resData.user || { email: email, role: resData.role || 'USER', name: resData.name || email.split('@')[0] };
+
+      if (!token) {
+        throw new Error('Token tidak terdeteksi dari respon server backend.');
+      }
+
+      setUserToken(token);
+      setUserInfo(user);
+      
+      await AsyncStorage.setItem('userToken', token);
+      await AsyncStorage.setItem('userInfo', JSON.stringify(user));
+      
+    } catch (error) {
+      console.error('Login Gagal:', error);
+      const errorMsg = error.response?.data?.message || 'Server backend mungkin belum dinyalakan atau kombinasi password salah.';
+      
+      // Mengatasi alert untuk web fallback
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert(`Login Gagal: ${errorMsg}\n(Pastikan backend menyala di port 3000!)`);
+      } else {
+        Alert.alert('Gagal Masuk', errorMsg);
+      }
+    }
+    setIsLoading(false);
   };
 
   const logout = async () => {
@@ -44,17 +61,16 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       let token = await AsyncStorage.getItem('userToken');
       let info = await AsyncStorage.getItem('userInfo');
-      if (token) {
+      if (token && info) {
         setUserToken(token);
         setUserInfo(JSON.parse(info));
       }
     } catch (e) {
-      console.log('Gagal mengecek sesi token', e);
+      console.log('Gagal memulihkan sesi', e);
     }
     setIsLoading(false);
   };
 
-  // Cek otomatis apakah user sudah pernah login sebelumnya saat aplikasi baru dibuka
   useEffect(() => {
     checkLoginSystem();
   }, []);

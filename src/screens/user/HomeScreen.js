@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Modal } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, ScrollView, StyleSheet, Modal, RefreshControl } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import QRCode from 'react-native-qrcode-svg';
 import { globalStyles } from '../../styles/globalStyles';
 import { colors } from '../../styles/colors';
@@ -7,29 +8,57 @@ import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/common/Button';
 import PackageCard from '../../components/package/PackageCard';
 import LockerCard from '../../components/locker/LockerCard';
+import api from '../../services/api'; 
 
 export default function HomeScreen({ navigation }) {
   const { userInfo, logout } = useAuth();
   
-  const role = userInfo?.role || 'user';
+  // Ambil role secara uppercase berdasarkan JWT dari database (ADMIN / COURIER / USER)
+  const role = userInfo?.role?.toUpperCase() || 'USER';
+  
   const [showCourierQR, setShowCourierQR] = useState(false);
   const [courierToken, setCourierToken] = useState('');
+  
+  // State API Data
+  const [lockers, setLockers] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchLockers = async () => {
+    try {
+      // Memanggil method GET /api/lockers sesuai breafingApi.md
+      const response = await api.get('/lockers');
+      const dataLoker = response.data?.data || response.data || [];
+      setLockers(dataLoker);
+    } catch (error) {
+      console.error('Gagal mengambil data loker (Pastikan Server Backend Menyala):', error);
+    }
+  };
+
+  // Setiap kali Admin membuka halaman ini, tarik data asli dari backend!
+  useFocusEffect(
+    useCallback(() => {
+      if (role === 'ADMIN') {
+        fetchLockers();
+      }
+    }, [role])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    if (role === 'ADMIN') {
+      await fetchLockers();
+    }
+    setRefreshing(false);
+  };
 
   const renderUserDashboard = () => (
     <View>
       <Text style={styles.sectionTitle}>Paket Aktif Anda</Text>
       <PackageCard 
-        trackingNumber="RESI-123456789"
+        trackingNumber="RESI-ASLI-12345"
         status="stored"
-        lockerNumber="Locker #04"
-        onPress={() => navigation.navigate('OpenLocker', { lockerId: 'LOKER-04' })}
-      />
-      <Text style={styles.sectionTitle}>Riwayat</Text>
-      <PackageCard 
-        trackingNumber="RESI-987654321"
-        status="picked_up"
-        lockerNumber="Locker #02"
-        onPress={() => navigation.navigate('PackageDetail')}
+        lockerNumber="Locker #01"
+        onPress={() => navigation.navigate('OpenLocker', { lockerId: '1' })}
       />
     </View>
   );
@@ -43,50 +72,51 @@ export default function HomeScreen({ navigation }) {
           onPress={() => navigation.navigate('Scan')} 
         />
       </View>
-      <Text style={styles.sectionTitle}>Riwayat Drop Hari Ini</Text>
-      <PackageCard 
-        trackingNumber="RESI-555555"
-        status="stored"
-        lockerNumber="Locker #07"
-      />
     </View>
   );
 
   const renderAdminDashboard = () => (
     <View>
       <View style={styles.courierBanner}>
-        <Text style={styles.bannerText}>Akses Login Kurir</Text>
+        <Text style={styles.bannerText}>Akses Mesin Kiosk (Layar Fisik)</Text>
         <Button 
-          title="Generate QR Login" 
+          title="Generate QR Sinkronisasi Loker" 
           variant="outline"
           onPress={() => {
-            setCourierToken(`COURIER-LOGIN-${Date.now()}`);
+            setCourierToken(`COURIER-LOGIN-${Date.now()}`); // Nanti backend bisa memvalidasi kode rahasia ini
             setShowCourierQR(true);
           }} 
         />
       </View>
 
-      <Text style={styles.sectionTitle}>Status Loker (Live)</Text>
+      <Text style={styles.sectionTitle}>Status Hardware Loker (Live)</Text>
       <View style={styles.grid}>
-        <LockerCard lockerNumber="01" status="available" />
-        <LockerCard lockerNumber="02" status="occupied" />
-        <LockerCard lockerNumber="03" status="maintenance" />
-        <LockerCard lockerNumber="04" status="occupied" />
+        {lockers.length === 0 ? (
+           <Text style={globalStyles.bodySmall}>Belum ada data! (Server mati atau database kosong).</Text>
+        ) : (
+           // Render kartu dinamis langsung dari database Prisma/MySQL!
+           lockers.map((loker, index) => (
+             <LockerCard 
+               key={loker.id || index} 
+               lockerNumber={loker.number || loker.id} 
+               status={loker.status?.toLowerCase() || 'available'} 
+             />
+           ))
+        )}
       </View>
 
-      {/* Modal untuk memunculkan (generate) QR Code Kurir */}
       <Modal visible={showCourierQR} animationType="fade" transparent>
         <View style={styles.modalBg}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>QR Akses Kurir</Text>
-            <Text style={[globalStyles.bodySmall, { textAlign: 'center' }]}>Kurir akan men-scan layar ini untuk login ke sistem mesin ini.</Text>
+            <Text style={styles.modalTitle}>Sistem Kiosk Mesin</Text>
+            <Text style={[globalStyles.bodySmall, { textAlign: 'center' }]}>Kode ini berfungsi sebagai akses fisik Kurir untuk mesin ini.</Text>
             
             <View style={styles.qrContainer}>
               <QRCode value={courierToken} size={200} />
             </View>
             
             <Button 
-              title="Tutup QR" 
+              title="Tutup Panel" 
               variant="ghost" 
               onPress={() => setShowCourierQR(false)} 
               style={{ width: '100%' }} 
@@ -101,18 +131,22 @@ export default function HomeScreen({ navigation }) {
     <View style={globalStyles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={[globalStyles.title, { marginBottom: 2 }]}>Dashboard</Text>
+          <Text style={[globalStyles.title, { marginBottom: 2 }]}>Dashboard {role}</Text>
           <Text style={globalStyles.bodySmall}>
-            Halo, <Text style={{ color: colors.primary, fontWeight: 'bold' }}>{userInfo?.username}</Text> ({role})
+            Selamat bekerja, <Text style={{ color: colors.primary, fontWeight: 'bold' }}>{userInfo?.name || userInfo?.email}</Text>
           </Text>
         </View>
         <Button title="Keluar" variant="outline" onPress={logout} style={styles.logoutBtn} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        {role === 'admin' && renderAdminDashboard()}
-        {role === 'courier' && renderCourierDashboard()}
-        {role === 'user' && renderUserDashboard()}
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={styles.scroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+      >
+        {role === 'ADMIN' && renderAdminDashboard()}
+        {role === 'COURIER' && renderCourierDashboard()}
+        {role === 'USER' && renderUserDashboard()}
       </ScrollView>
     </View>
   );
@@ -132,7 +166,7 @@ const styles = StyleSheet.create({
     marginVertical: 0,
   },
   scroll: {
-    paddingBottom: 40,
+    paddingBottom: 110, // Memberikan ruang untuk Tab Bar melayang di bawah
   },
   sectionTitle: {
     fontSize: 18,

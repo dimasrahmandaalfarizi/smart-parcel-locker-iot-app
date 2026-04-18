@@ -7,17 +7,17 @@ import Input from '../../components/common/Input';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function LoginScreen({ navigation }) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading } = useAuth(); // Ambil fungsi login dari Context Dummy
+  const { login, isLoading } = useAuth(); // Sekarang terkoneksi ke Server sungguhan
 
   const handleLogin = () => {
-    if (!username || !password) {
-      alert('Harap isi username dan password');
+    if (!email || !password) {
+      alert('Harap isi alamat email dan password Anda secara lengkap!');
       return;
     }
-    // Eksekusi fungsi login
-    login(username, password);
+    // Eksekusi fungsi login asli ke server (POST /api/auth/login)
+    login(email, password);
   };
 
   return (
@@ -27,33 +27,35 @@ export default function LoginScreen({ navigation }) {
           Smart Locker
         </Text>
         <Text style={[globalStyles.subtitle, { textAlign: 'center', marginBottom: 32 }]}>
-          Login untuk mengakses paket atau memonitor loker IoT
+          Masuk untuk tersambung ke jaringan IoT Loker
         </Text>
         
         <View style={{ width: '100%' }}>
           <Input 
-            label="Username / Email"
-            placeholder="Coba ketik 'admin' atau 'kurir'"
-            value={username}
-            onChangeText={setUsername}
+            label="Alamat Email"
+            placeholder="admin@locker.com"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
           <Input 
-            label="Password"
-            placeholder="Ketik password sembarang..."
+            label="Password Aman"
+            placeholder="••••••••"
             secureTextEntry
             value={password}
             onChangeText={setPassword}
           />
           
           <Button 
-            title="Masuk Aplikasi" 
+            title="Akses Sistem Sekarang" 
             onPress={handleLogin} 
             isLoading={isLoading}
             style={{ marginTop: 8 }}
           />
           
           <Button 
-            title="Scan QR (Sebagai Kurir)" 
+            title="Scan QR (Sebagai Kurir Ekspedisi)" 
             variant="outline"
             onPress={() => navigation.navigate('ScanLogin')} 
             style={{ marginTop: 4 }}

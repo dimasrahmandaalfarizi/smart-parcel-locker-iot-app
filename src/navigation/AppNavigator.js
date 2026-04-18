@@ -2,7 +2,7 @@ import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/auth/LoginScreen';
-import HomeScreen from '../screens/user/HomeScreen';
+import TabNavigator from './TabNavigator';
 import PackageDetailScreen from '../screens/user/PackageDetailScreen';
 import ScanScreen from '../screens/courier/ScanScreen';
 import OpenLockerScreen from '../screens/user/OpenLockerScreen';
@@ -38,7 +38,7 @@ export default function AppNavigator() {
         </>
       ) : (
         <>
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="MainTabs" component={TabNavigator} />
           <Stack.Screen name="PackageDetail" component={PackageDetailScreen} />
           {/* Routing Scanner Untuk Kurir Memindai Paket */}
           <Stack.Screen name="Scan" component={ScanScreen} initialParams={{ mode: 'package' }} />
