@@ -6,7 +6,7 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { useAuth } from '../../hooks/useAuth';
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { login, isLoading } = useAuth(); // Ambil fungsi login dari Context Dummy
@@ -55,7 +55,7 @@ export default function LoginScreen() {
           <Button 
             title="Scan QR (Sebagai Kurir)" 
             variant="outline"
-            onPress={() => alert('Fitur scanner QR kurir segera dibuat!')} 
+            onPress={() => navigation.navigate('ScanLogin')} 
             style={{ marginTop: 4 }}
           />
         </View>

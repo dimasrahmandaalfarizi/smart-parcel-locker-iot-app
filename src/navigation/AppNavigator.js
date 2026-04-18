@@ -29,12 +29,17 @@ export default function AppNavigator() {
       contentStyle: { backgroundColor: colors.background }
     }}>
       {userToken == null ? (
-        <Stack.Screen name="Login" component={LoginScreen} />
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          {/* Routing Scanner Untuk Login Kurir Tanpa Auth */}
+          <Stack.Screen name="ScanLogin" component={ScanScreen} initialParams={{ mode: 'login' }} />
+        </>
       ) : (
         <>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="PackageDetail" component={PackageDetailScreen} />
-          <Stack.Screen name="Scan" component={ScanScreen} />
+          {/* Routing Scanner Untuk Kurir Memindai Paket */}
+          <Stack.Screen name="Scan" component={ScanScreen} initialParams={{ mode: 'package' }} />
           <Stack.Screen name="OpenLocker" component={OpenLockerScreen} />
         </>
       )}

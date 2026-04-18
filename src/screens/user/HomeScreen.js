@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, Modal } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
 import { globalStyles } from '../../styles/globalStyles';
 import { colors } from '../../styles/colors';
 import { useAuth } from '../../hooks/useAuth';
@@ -11,6 +12,8 @@ export default function HomeScreen({ navigation }) {
   const { userInfo, logout } = useAuth();
   
   const role = userInfo?.role || 'user';
+  const [showCourierQR, setShowCourierQR] = useState(false);
+  const [courierToken, setCourierToken] = useState('');
 
   const renderUserDashboard = () => (
     <View>
@@ -19,7 +22,7 @@ export default function HomeScreen({ navigation }) {
         trackingNumber="RESI-123456789"
         status="stored"
         lockerNumber="Locker #04"
-        onPress={() => navigation.navigate('PackageDetail')}
+        onPress={() => navigation.navigate('OpenLocker', { lockerId: 'LOKER-04' })}
       />
       <Text style={styles.sectionTitle}>Riwayat</Text>
       <PackageCard 
@@ -51,6 +54,18 @@ export default function HomeScreen({ navigation }) {
 
   const renderAdminDashboard = () => (
     <View>
+      <View style={styles.courierBanner}>
+        <Text style={styles.bannerText}>Akses Login Kurir</Text>
+        <Button 
+          title="Generate QR Login" 
+          variant="outline"
+          onPress={() => {
+            setCourierToken(`COURIER-LOGIN-${Date.now()}`);
+            setShowCourierQR(true);
+          }} 
+        />
+      </View>
+
       <Text style={styles.sectionTitle}>Status Loker (Live)</Text>
       <View style={styles.grid}>
         <LockerCard lockerNumber="01" status="available" />
@@ -58,6 +73,27 @@ export default function HomeScreen({ navigation }) {
         <LockerCard lockerNumber="03" status="maintenance" />
         <LockerCard lockerNumber="04" status="occupied" />
       </View>
+
+      {/* Modal untuk memunculkan (generate) QR Code Kurir */}
+      <Modal visible={showCourierQR} animationType="fade" transparent>
+        <View style={styles.modalBg}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>QR Akses Kurir</Text>
+            <Text style={[globalStyles.bodySmall, { textAlign: 'center' }]}>Kurir akan men-scan layar ini untuk login ke sistem mesin ini.</Text>
+            
+            <View style={styles.qrContainer}>
+              <QRCode value={courierToken} size={200} />
+            </View>
+            
+            <Button 
+              title="Tutup QR" 
+              variant="ghost" 
+              onPress={() => setShowCourierQR(false)} 
+              style={{ width: '100%' }} 
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 
@@ -123,5 +159,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+  },
+  modalBg: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    backgroundColor: colors.surface,
+    padding: 24,
+    borderRadius: 20,
+    alignItems: 'center',
+    width: '100%',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.white,
+    marginBottom: 8,
+  },
+  qrContainer: {
+    marginVertical: 24,
+    padding: 16,
+    backgroundColor: colors.white,
+    borderRadius: 12,
   }
 });
