@@ -58,6 +58,13 @@ export default function LoginScreen({ navigation }) {
             onPress={() => navigation.navigate('ScanLogin')} 
             style={{ marginTop: 4 }}
           />
+
+          <Button 
+            title="Tampilkan Layar QR Mesin Loker" 
+            variant="ghost"
+            onPress={() => navigation.navigate('LockerKiosk')} 
+            style={{ marginTop: 12 }}
+          />
         </View>
       </Card>
     </View>

@@ -6,6 +6,7 @@ import HomeScreen from '../screens/user/HomeScreen';
 import PackageDetailScreen from '../screens/user/PackageDetailScreen';
 import ScanScreen from '../screens/courier/ScanScreen';
 import OpenLockerScreen from '../screens/user/OpenLockerScreen';
+import LockerKioskScreen from '../screens/admin/LockerKioskScreen';
 import { useAuth } from '../hooks/useAuth';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
@@ -33,6 +34,7 @@ export default function AppNavigator() {
           <Stack.Screen name="Login" component={LoginScreen} />
           {/* Routing Scanner Untuk Login Kurir Tanpa Auth */}
           <Stack.Screen name="ScanLogin" component={ScanScreen} initialParams={{ mode: 'login' }} />
+          <Stack.Screen name="LockerKiosk" component={LockerKioskScreen} />
         </>
       ) : (
         <>
