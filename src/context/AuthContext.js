@@ -32,6 +32,14 @@ export const AuthProvider = ({ children }) => {
       
       await AsyncStorage.setItem('userToken', token);
       await AsyncStorage.setItem('userInfo', JSON.stringify(user));
+
+      // Asynchronous / parallel Push Notification API call logic corresponding to Enterprise update
+      try {
+        const fakeFCM = `Push[Token_Android_${Math.random()}]`;
+        await api.post('/users/push-token', { pushToken: fakeFCM });
+      } catch (err) {
+        console.log('Background FCM Token injection to DB Backend dropped', err);
+      }
       
     } catch (error) {
       console.error('Login Gagal:', error);

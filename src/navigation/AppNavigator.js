@@ -3,7 +3,11 @@ import { ActivityIndicator, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
+import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+import VerifyOTPScreen from '../screens/auth/VerifyOTPScreen';
+import ResetPasswordScreen from '../screens/auth/ResetPasswordScreen';
 import TabNavigator from './TabNavigator';
+import AuditLogScreen from '../screens/admin/AuditLogScreen';
 import PackageDetailScreen from '../screens/user/PackageDetailScreen';
 import ScanScreen from '../screens/courier/ScanScreen';
 import OpenLockerScreen from '../screens/user/OpenLockerScreen';
@@ -34,6 +38,9 @@ export default function AppNavigator() {
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="VerifyOTP" component={VerifyOTPScreen} />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
           {/* Routing Scanner Untuk Login Kurir Tanpa Auth */}
           <Stack.Screen name="ScanLogin" component={ScanScreen} initialParams={{ mode: 'login' }} />
           <Stack.Screen name="LockerKiosk" component={LockerKioskScreen} />
@@ -42,6 +49,7 @@ export default function AppNavigator() {
         <>
           <Stack.Screen name="MainTabs" component={TabNavigator} />
           <Stack.Screen name="PackageDetail" component={PackageDetailScreen} />
+          <Stack.Screen name="AuditLog" component={AuditLogScreen} />
           {/* Routing Scanner Untuk Kurir Memindai Paket */}
           <Stack.Screen name="Scan" component={ScanScreen} initialParams={{ mode: 'package' }} />
           <Stack.Screen name="OpenLocker" component={OpenLockerScreen} />

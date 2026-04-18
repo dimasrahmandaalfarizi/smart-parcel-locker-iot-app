@@ -55,10 +55,12 @@ export default function LoginScreen({ navigation }) {
             style={{ marginTop: 8 }}
           />
 
-          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 24, marginBottom: 16 }}>
-            <Text style={{ color: colors.textSecondary }}>Pengguna baru mesin loker? </Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 10, marginTop: 24, marginBottom: 16 }}>
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+               <Text style={{ color: colors.textSecondary, fontWeight: 'bold' }}>Lupa Password?</Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-               <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Daftar Akun Secara Gratis</Text>
+               <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Buat Akun Baru</Text>
             </TouchableOpacity>
           </View>
           
@@ -69,13 +71,6 @@ export default function LoginScreen({ navigation }) {
             variant="outline"
             onPress={() => navigation.navigate('ScanLogin')} 
             style={{ marginTop: 4 }}
-          />
-
-          <Button 
-            title="Tampilkan Layar Barcode Mesin" 
-            variant="ghost"
-            onPress={() => navigation.navigate('LockerKiosk')} 
-            style={{ marginTop: 12 }}
           />
         </View>
       </Card>
