@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { globalStyles } from '../../styles/globalStyles';
+import { colors } from '../../styles/colors';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
@@ -9,14 +10,14 @@ import { useAuth } from '../../hooks/useAuth';
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading } = useAuth(); // Sekarang terkoneksi ke Server sungguhan
+  const { login, isLoading } = useAuth(); // Terkoneksi ke Server sungguhan
 
   const handleLogin = () => {
     if (!email || !password) {
       alert('Harap isi alamat email dan password Anda secara lengkap!');
       return;
     }
-    // Eksekusi fungsi login asli ke server (POST /api/auth/login)
+    // Eksekusi fungsi login (POST /api/auth/login)
     login(email, password);
   };
 
@@ -27,7 +28,7 @@ export default function LoginScreen({ navigation }) {
           Smart Locker
         </Text>
         <Text style={[globalStyles.subtitle, { textAlign: 'center', marginBottom: 32 }]}>
-          Masuk untuk tersambung ke jaringan IoT Loker
+          Masuk untuk tersambung ke jaringan mesin IoT
         </Text>
         
         <View style={{ width: '100%' }}>
@@ -40,7 +41,7 @@ export default function LoginScreen({ navigation }) {
             autoCapitalize="none"
           />
           <Input 
-            label="Password Aman"
+            label="Password Spesifik"
             placeholder="••••••••"
             secureTextEntry
             value={password}
@@ -53,16 +54,25 @@ export default function LoginScreen({ navigation }) {
             isLoading={isLoading}
             style={{ marginTop: 8 }}
           />
+
+          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 24, marginBottom: 16 }}>
+            <Text style={{ color: colors.textSecondary }}>Pengguna baru mesin loker? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+               <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Daftar Akun Secara Gratis</Text>
+            </TouchableOpacity>
+          </View>
           
+          <View style={{ height: 1, backgroundColor: colors.border, marginVertical: 16 }} />
+
           <Button 
-            title="Scan QR (Sebagai Kurir Ekspedisi)" 
+            title="Scan QR (Sebagai Kurir Kemitraan)" 
             variant="outline"
             onPress={() => navigation.navigate('ScanLogin')} 
             style={{ marginTop: 4 }}
           />
 
           <Button 
-            title="Tampilkan Layar QR Mesin Loker" 
+            title="Tampilkan Layar Barcode Mesin" 
             variant="ghost"
             onPress={() => navigation.navigate('LockerKiosk')} 
             style={{ marginTop: 12 }}

@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/auth/LoginScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
 import TabNavigator from './TabNavigator';
 import PackageDetailScreen from '../screens/user/PackageDetailScreen';
 import ScanScreen from '../screens/courier/ScanScreen';
@@ -32,6 +33,7 @@ export default function AppNavigator() {
       {userToken == null ? (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
           {/* Routing Scanner Untuk Login Kurir Tanpa Auth */}
           <Stack.Screen name="ScanLogin" component={ScanScreen} initialParams={{ mode: 'login' }} />
           <Stack.Screen name="LockerKiosk" component={LockerKioskScreen} />
