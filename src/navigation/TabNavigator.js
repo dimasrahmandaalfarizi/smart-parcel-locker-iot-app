@@ -6,16 +6,7 @@ import { colors } from '../styles/colors';
 import { useAuth } from '../hooks/useAuth';
 
 import HomeScreen from '../screens/user/HomeScreen';
-
-// Dummy component untuk layar Profil
-function ProfileScreen() { 
-  return (
-    <View style={{flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center'}}>
-      <Text style={{color: colors.white, fontSize: 18, fontWeight: 'bold'}}>Pengaturan Profil</Text>
-      <Text style={{color: colors.textSecondary, marginTop: 8}}>Akan dikembangkan lebih lanjut.</Text>
-    </View>
-  ); 
-}
+import ProfileScreen from '../screens/user/ProfileScreen';
 
 const CustomCenterButton = ({ children, onPress }) => (
   <TouchableOpacity

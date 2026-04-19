@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, Modal, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Modal, RefreshControl, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import QRCode from 'react-native-qrcode-svg';
+import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../../styles/globalStyles';
 import { colors } from '../../styles/colors';
 import { useAuth } from '../../hooks/useAuth';
@@ -11,8 +12,9 @@ import LockerCard from '../../components/locker/LockerCard';
 import api from '../../services/api'; 
 
 export default function HomeScreen({ navigation }) {
-  const { userInfo, logout } = useAuth();
+  const { userInfo } = useAuth();
   const role = userInfo?.role?.toUpperCase() || 'USER';
+  const firstName = userInfo?.name?.split(' ')[0] || 'Kawan';
   
   const [showCourierQR, setShowCourierQR] = useState(false);
   const [courierToken, setCourierToken] = useState('');
@@ -32,7 +34,6 @@ export default function HomeScreen({ navigation }) {
 
   const fetchMyPackages = async () => {
     try {
-      // Sesuai implementasi pada dokumen hasilnya.md
       const response = await api.get('/packages/my-packages');
       setMyPackages(response.data?.data || response.data || []);
     } catch (error) {
@@ -42,7 +43,6 @@ export default function HomeScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      // Membagi penarikan API berdasarkan tingkat Hak Akses
       if (role === 'ADMIN') fetchLockers();
       if (role === 'USER') fetchMyPackages();
     }, [role])
@@ -57,21 +57,24 @@ export default function HomeScreen({ navigation }) {
 
   const renderUserDashboard = () => (
     <View>
-      <Text style={styles.sectionTitle}>Paket Aktif Anda</Text>
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>Aktivitas Loker Anda</Text>
+        {myPackages.length > 0 && <View style={styles.countBadge}><Text style={styles.countText}>{myPackages.length}</Text></View>}
+      </View>
+
       {myPackages.length === 0 ? (
-         <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-            <Text style={[globalStyles.bodySmall, { fontStyle: 'italic', textAlign: 'center' }]}>
-              Anda belum memiliki paket yang dititipkan atau sedang tertahan di stasiun loker.
-            </Text>
+         <View style={styles.emptyStateBox}>
+            <Ionicons name="cube-outline" size={48} color="rgba(255,255,255,0.1)" style={{marginBottom: 12}}/>
+            <Text style={[globalStyles.body, { textAlign: 'center', fontWeight: '600' }]}>Belum ada paket tiba.</Text>
+            <Text style={[globalStyles.bodySmall, { textAlign: 'center', marginTop: 4 }]}>Kami akan mengirimkan notifikasi saat kurir menaruh paket Anda.</Text>
          </View>
       ) : (
-         // Menyusun render sesuai dengan bentuk database
          myPackages.map((pkg, index) => (
            <View key={pkg.id || index}>
-             {/* Jika paket tertahan karena belum lunas denda (Sesuai hasilnya.md) */}
              {pkg.isPaid === false && (
                 <View style={styles.penaltyBadge}>
-                  <Text style={styles.penaltyText}>🚨 Menginap &gt; 48 Jam | Denda: Rp {pkg.overtimeFee || 10000}</Text>
+                  <Ionicons name="warning-outline" size={16} color="#EF4444" style={{marginRight: 6}} />
+                  <Text style={styles.penaltyText}>Terlambat Diambil | Denda: Rp {pkg.overtimeFee || 10000}</Text>
                 </View>
              )}
              <PackageCard 
@@ -88,19 +91,25 @@ export default function HomeScreen({ navigation }) {
 
   const renderCourierDashboard = () => (
     <View>
-      <View style={styles.courierBanner}>
-        <Text style={styles.bannerText}>Siap Menaruh Paket ke Mesin?</Text>
-        <Button title="Scan Untuk Drop Paket" onPress={() => navigation.navigate('Scan')} />
+      <View style={styles.premiumBanner}>
+        <View style={styles.premiumBannerTextCont}>
+           <Text style={styles.premiumBannerTitle}>Tugas Ekspedisi</Text>
+           <Text style={styles.premiumBannerBody}>Dekatkan barcode paket ke lensa untuk langsung membuka pintu otomatis.</Text>
+        </View>
+        <Button title="Buka Kamera Scan" onPress={() => navigation.navigate('Scan')} />
       </View>
     </View>
   );
 
   const renderAdminDashboard = () => (
     <View>
-      <View style={styles.courierBanner}>
-        <Text style={styles.bannerText}>Akses Mesin Kiosk (Layar Fisik)</Text>
+      <View style={styles.premiumBanner}>
+        <View style={styles.premiumBannerTextCont}>
+           <Text style={styles.premiumBannerTitle}>Kiosk Sinkronisasi</Text>
+           <Text style={styles.premiumBannerBody}>Pasangkan mesin dengan memindai QR ini dari tablet loker.</Text>
+        </View>
         <Button 
-          title="Generate QR Sinkronisasi Loker" 
+          title="Tampilkan Kode QR" 
           variant="outline"
           onPress={() => {
             setCourierToken(`COURIER-LOGIN-${Date.now()}`); 
@@ -109,19 +118,26 @@ export default function HomeScreen({ navigation }) {
         />
       </View>
 
-      <View style={[styles.courierBanner, { marginTop: -8 }]}>
-        <Text style={styles.bannerText}>Forensik Keamanan Loker</Text>
-        <Button 
-          title="Buka Buku Log Mesin IoT" 
-          onPress={() => navigation.navigate('AuditLog')} 
-          variant="outline"
-        />
-      </View>
+      <TouchableOpacity style={styles.auditCard} onPress={() => navigation.navigate('AuditLog')} activeOpacity={0.8}>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+           <View style={[styles.iconBox, { backgroundColor: 'rgba(59,130,246,0.15)' }]}>
+             <Ionicons name="shield-checkmark-outline" size={24} color={colors.primary} />
+           </View>
+           <View style={{marginLeft: 16}}>
+             <Text style={styles.auditTitle}>Buku Forensik Keamanan</Text>
+             <Text style={styles.auditDesc}>Lacak riwayat semua akses pintu secara mutlak.</Text>
+           </View>
+        </View>
+        <Ionicons name="arrow-forward" size={20} color={colors.textSecondary} />
+      </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>Status Hardware Loker (Live Database)</Text>
+      <Text style={styles.sectionTitle}>Status Perangkat IoT Live</Text>
       <View style={styles.grid}>
         {lockers.length === 0 ? (
-           <Text style={globalStyles.bodySmall}>Belum ada data loker dari endpoint /api/lockers.</Text>
+           <View style={styles.emptyStateBox}>
+              <Ionicons name="server-outline" size={48} color="rgba(255,255,255,0.1)" style={{marginBottom: 12}}/>
+              <Text style={globalStyles.bodySmall}>Database kosong atau koneksi Server terputus.</Text>
+           </View>
         ) : (
            lockers.map((loker, index) => (
              <LockerCard 
@@ -137,11 +153,11 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.modalBg}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Sistem Kiosk Mesin</Text>
-            <Text style={[globalStyles.bodySmall, { textAlign: 'center' }]}>Kurir akan men-scan layar ini untuk login ke mesin ini.</Text>
+            <Text style={[globalStyles.bodySmall, { textAlign: 'center' }]}>Kurir akan men-scan layar ini untuk masuk sebagai akun mesin ini.</Text>
             <View style={styles.qrContainer}>
-              <QRCode value={courierToken} size={200} />
+              <QRCode value={courierToken} size={220} />
             </View>
-            <Button title="Tutup Panel" variant="ghost" onPress={() => setShowCourierQR(false)} style={{ width: '100%' }} />
+            <Button title="Tutup Perangkat" variant="ghost" onPress={() => setShowCourierQR(false)} style={{ width: '100%' }} />
           </View>
         </View>
       </Modal>
@@ -150,14 +166,16 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={globalStyles.container}>
-      <View style={styles.header}>
+      <View style={styles.headerPro}>
         <View>
-          <Text style={[globalStyles.title, { marginBottom: 2 }]}>Dashboard {role}</Text>
-          <Text style={globalStyles.bodySmall}>
-            Selamat bekerja, <Text style={{ color: colors.primary, fontWeight: 'bold' }}>{userInfo?.name || userInfo?.email}</Text>
-          </Text>
+          <Text style={styles.greetingText}>Halo, <Text style={{ color: colors.white }}>{firstName}!</Text> 👋</Text>
+          <Text style={styles.subtitleText}>Terhubung ke Jaringan Pintu Cerdas</Text>
         </View>
-        <Button title="Keluar" variant="outline" onPress={logout} style={styles.logoutBtn} />
+        {/* Profile button has been moved to Tab Navigator for cleaner UI */}
+        <TouchableOpacity style={styles.notificationBtn}>
+           <Ionicons name="notifications-outline" size={24} color={colors.white} />
+           <View style={styles.notificationDot} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -174,17 +192,36 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 40, marginBottom: 24 },
-  logoutBtn: { height: 36, paddingHorizontal: 16, marginVertical: 0 },
+  headerPro: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 60, marginBottom: 32, paddingHorizontal: 4 },
+  greetingText: { fontSize: 26, fontWeight: '800', color: colors.textSecondary, letterSpacing: -0.5, marginBottom: 4 },
+  subtitleText: { fontSize: 13, color: colors.textSecondary, fontWeight: '600' },
+  notificationBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.06)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  notificationDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', position: 'absolute', top: 12, right: 12, borderWidth: 1.5, borderColor: '#121212' },
+  
   scroll: { paddingBottom: 110 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', color: colors.textPrimary, marginBottom: 16, marginTop: 12 },
-  courierBanner: { backgroundColor: colors.surfaceHighlight, padding: 20, borderRadius: 16, marginBottom: 24, borderWidth: 1, borderColor: colors.border },
-  bannerText: { fontSize: 16, color: colors.textPrimary, fontWeight: '500', marginBottom: 16 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  modalCard: { backgroundColor: colors.surface, padding: 24, borderRadius: 20, alignItems: 'center', width: '100%', borderWidth: 1, borderColor: colors.border },
-  modalTitle: { fontSize: 22, fontWeight: '700', color: colors.white, marginBottom: 8 },
-  qrContainer: { marginVertical: 24, padding: 16, backgroundColor: colors.white, borderRadius: 12 },
-  penaltyBadge: { backgroundColor: 'rgba(239, 68, 68, 0.1)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.5)' },
-  penaltyText: { color: '#EF4444', fontWeight: '800', fontSize: 13 }
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, marginTop: 12, paddingHorizontal: 4 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.white, letterSpacing: -0.3 },
+  countBadge: { backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 10, paddingVertical: 2, borderRadius: 10, marginLeft: 12 },
+  countText: { color: colors.white, fontSize: 12, fontWeight: '800' },
+  
+  emptyStateBox: { backgroundColor: 'rgba(255,255,255,0.02)', padding: 32, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.04)', borderStyle: 'dashed' },
+  
+  premiumBanner: { backgroundColor: 'rgba(59,130,246,0.1)', padding: 24, borderRadius: 24, marginBottom: 28, borderWidth: 1, borderColor: 'rgba(59,130,246,0.2)' },
+  premiumBannerTextCont: { marginBottom: 16 },
+  premiumBannerTitle: { fontSize: 20, color: colors.white, fontWeight: '800', marginBottom: 6, letterSpacing: -0.5 },
+  premiumBannerBody: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
+  
+  auditCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.03)', padding: 16, borderRadius: 20, marginBottom: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  iconBox: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  auditTitle: { fontSize: 15, fontWeight: '700', color: colors.white, marginBottom: 4 },
+  auditDesc: { fontSize: 12, color: colors.textSecondary },
+
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginTop: 16 },
+  modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalCard: { backgroundColor: '#1A1A1A', padding: 32, borderRadius: 32, alignItems: 'center', width: '100%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  modalTitle: { fontSize: 24, fontWeight: '800', color: colors.white, marginBottom: 12 },
+  qrContainer: { marginVertical: 32, padding: 20, backgroundColor: colors.white, borderRadius: 20 },
+  
+  penaltyBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(239, 68, 68, 0.15)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.4)' },
+  penaltyText: { color: '#FF6B6B', fontWeight: '700', fontSize: 12 }
 });
