@@ -385,6 +385,7 @@ export default function ProfileScreen({ navigation }) {
             rightElement={<Ionicons name="checkmark-circle" size={20} color="#10B981" />}
           />
           <SettingItem icon="shield-checkmark-outline" title="Keamanan Berlapis (Biometrik)" subtitle={biometricEnabled ? '🟢 Aktif' : '🔴 Nonaktif'} onPress={() => setActiveModal('security')} />
+          <SettingItem icon="receipt-outline" title="Riwayat Pembayaran Denda" subtitle="Lihat transaksi yang pernah dilakukan" iconColor="#10B981" onPress={() => navigation?.navigate('PaymentHistory')} />
         </View>
       </View>
 

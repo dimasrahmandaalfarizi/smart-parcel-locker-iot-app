@@ -150,6 +150,19 @@ export default function HomeScreen({ navigation }) {
         <Ionicons name="arrow-forward" size={20} color={colors.textSecondary} />
       </TouchableOpacity>
 
+      <TouchableOpacity style={[styles.auditCard, { borderColor: 'rgba(16,185,129,0.2)', backgroundColor: 'rgba(16,185,129,0.05)' }]} onPress={() => navigation.navigate('AdminUsers')} activeOpacity={0.8}>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+           <View style={[styles.iconBox, { backgroundColor: 'rgba(16,185,129,0.15)' }]}>
+             <Ionicons name="people-outline" size={24} color="#10B981" />
+           </View>
+           <View style={{marginLeft: 16}}>
+             <Text style={styles.auditTitle}>Manajemen Pengguna</Text>
+             <Text style={styles.auditDesc}>Lihat & kelola semua akun yang terdaftar.</Text>
+           </View>
+        </View>
+        <Ionicons name="arrow-forward" size={20} color={colors.textSecondary} />
+      </TouchableOpacity>
+
       <Text style={[styles.sectionTitle, {marginTop: 8, marginBottom: 16}]}>Status Perangkat IoT Live</Text>
       <View style={styles.grid}>
         {lockers.length === 0 ? (
@@ -190,7 +203,7 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.subtitleText}>Terhubung ke Jaringan Pintu Cerdas</Text>
         </View>
         {/* Profile button has been moved to Tab Navigator for cleaner UI */}
-        <TouchableOpacity style={styles.notificationBtn}>
+        <TouchableOpacity style={styles.notificationBtn} onPress={() => navigation.navigate('Notifications')}>
            <Ionicons name="notifications-outline" size={24} color={colors.white} />
            <View style={styles.notificationDot} />
         </TouchableOpacity>
