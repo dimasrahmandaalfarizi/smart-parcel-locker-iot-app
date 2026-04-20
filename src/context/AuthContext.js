@@ -64,6 +64,17 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   };
 
+  // Sinkronisasi perubahan nama di Profile Screen tanpa perlu panggil API (client-side cache update)
+  const updateUserName = async (newName) => {
+    try {
+      const updatedInfo = { ...userInfo, name: newName };
+      setUserInfo(updatedInfo);
+      await AsyncStorage.setItem('userInfo', JSON.stringify(updatedInfo));
+    } catch (e) {
+      console.error('Gagal memperbarui nama lokal:', e);
+    }
+  };
+
   const checkLoginSystem = async () => {
     try {
       setIsLoading(true);
@@ -84,7 +95,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ login, logout, isLoading, userToken, userInfo }}>
+    <AuthContext.Provider value={{ login, logout, updateUserName, isLoading, userToken, userInfo }}>
       {children}
     </AuthContext.Provider>
   );
