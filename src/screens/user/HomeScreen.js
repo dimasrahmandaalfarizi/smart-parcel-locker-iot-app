@@ -9,6 +9,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/common/Button';
 import PackageCard from '../../components/package/PackageCard';
 import LockerCard from '../../components/locker/LockerCard';
+import { PackageCardSkeleton, LockerCardSkeleton } from '../../components/common/SkeletonLoader';
 import api from '../../services/api'; 
 
 export default function HomeScreen({ navigation }) {
@@ -58,11 +59,15 @@ export default function HomeScreen({ navigation }) {
   const renderUserDashboard = () => (
     <View>
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionTitle}>Aktivitas Loker Anda</Text>
+        <Text style={styles.sectionTitle}>Paket Aktif di Loker</Text>
         {myPackages.length > 0 && <View style={styles.countBadge}><Text style={styles.countText}>{myPackages.length}</Text></View>}
+        <TouchableOpacity style={styles.historyBtn} onPress={() => navigation.navigate('PackageHistory')}>
+          <Text style={styles.historyBtnText}>Riwayat</Text>
+          <Ionicons name="arrow-forward" size={13} color={colors.primary} />
+        </TouchableOpacity>
       </View>
 
-      {myPackages.length === 0 ? (
+      {!refreshing && myPackages.length === 0 ? (
          <View style={styles.emptyStateBox}>
             <Ionicons name="cube-outline" size={48} color="rgba(255,255,255,0.1)" style={{marginBottom: 12}}/>
             <Text style={[globalStyles.body, { textAlign: 'center', fontWeight: '600' }]}>Belum ada paket tiba.</Text>
@@ -103,6 +108,20 @@ export default function HomeScreen({ navigation }) {
 
   const renderAdminDashboard = () => (
     <View>
+      {/* Analytics shortcut card */}
+      <TouchableOpacity style={styles.analyticsCard} onPress={() => navigation.navigate('AdminAnalytics')} activeOpacity={0.8}>
+        <View style={{flexDirection: 'row', alignItems: 'center', flex: 1}}>
+          <View style={[styles.iconBox, { backgroundColor: 'rgba(139,92,246,0.15)' }]}>
+            <Ionicons name="bar-chart-outline" size={22} color="#8B5CF6" />
+          </View>
+          <View style={{marginLeft: 14}}>
+            <Text style={styles.analyticsTitle}>Dashboard Analitik</Text>
+            <Text style={styles.analyticsDesc}>Statistik, grafik & performa harian loker</Text>
+          </View>
+        </View>
+        <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.3)" />
+      </TouchableOpacity>
+
       <View style={styles.premiumBanner}>
         <View style={styles.premiumBannerTextCont}>
            <Text style={styles.premiumBannerTitle}>Kiosk Sinkronisasi</Text>
@@ -131,12 +150,11 @@ export default function HomeScreen({ navigation }) {
         <Ionicons name="arrow-forward" size={20} color={colors.textSecondary} />
       </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>Status Perangkat IoT Live</Text>
+      <Text style={[styles.sectionTitle, {marginTop: 8, marginBottom: 16}]}>Status Perangkat IoT Live</Text>
       <View style={styles.grid}>
         {lockers.length === 0 ? (
-           <View style={styles.emptyStateBox}>
-              <Ionicons name="server-outline" size={48} color="rgba(255,255,255,0.1)" style={{marginBottom: 12}}/>
-              <Text style={globalStyles.bodySmall}>Database kosong atau koneksi Server terputus.</Text>
+           <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: 10}}>
+              <LockerCardSkeleton /><LockerCardSkeleton /><LockerCardSkeleton /><LockerCardSkeleton />
            </View>
         ) : (
            lockers.map((loker, index) => (
@@ -223,5 +241,12 @@ const styles = StyleSheet.create({
   qrContainer: { marginVertical: 32, padding: 20, backgroundColor: colors.white, borderRadius: 20 },
   
   penaltyBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(239, 68, 68, 0.15)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.4)' },
-  penaltyText: { color: '#FF6B6B', fontWeight: '700', fontSize: 12 }
+  penaltyText: { color: '#FF6B6B', fontWeight: '700', fontSize: 12 },
+
+  // Phase 4 styles
+  historyBtn: { flexDirection: 'row', alignItems: 'center', marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, backgroundColor: 'rgba(59,130,246,0.1)', borderWidth: 1, borderColor: 'rgba(59,130,246,0.2)' },
+  historyBtnText: { color: colors.primary, fontSize: 12, fontWeight: '700', marginRight: 4 },
+  analyticsCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(139,92,246,0.06)', padding: 18, borderRadius: 20, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(139,92,246,0.15)' },
+  analyticsTitle: { fontSize: 15, fontWeight: '800', color: colors.white, marginBottom: 4 },
+  analyticsDesc: { fontSize: 12, color: colors.textSecondary },
 });

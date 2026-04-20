@@ -8,7 +8,9 @@ import VerifyOTPScreen from '../screens/auth/VerifyOTPScreen';
 import ResetPasswordScreen from '../screens/auth/ResetPasswordScreen';
 import TabNavigator from './TabNavigator';
 import AuditLogScreen from '../screens/admin/AuditLogScreen';
+import AdminAnalyticsScreen from '../screens/admin/AdminAnalyticsScreen';
 import PackageDetailScreen from '../screens/user/PackageDetailScreen';
+import PackageHistoryScreen from '../screens/user/PackageHistoryScreen';
 import ScanScreen from '../screens/courier/ScanScreen';
 import OpenLockerScreen from '../screens/user/OpenLockerScreen';
 import LockerKioskScreen from '../screens/admin/LockerKioskScreen';
@@ -49,7 +51,9 @@ export default function AppNavigator() {
         <>
           <Stack.Screen name="MainTabs" component={TabNavigator} />
           <Stack.Screen name="PackageDetail" component={PackageDetailScreen} />
+          <Stack.Screen name="PackageHistory" component={PackageHistoryScreen} />
           <Stack.Screen name="AuditLog" component={AuditLogScreen} />
+          <Stack.Screen name="AdminAnalytics" component={AdminAnalyticsScreen} />
           {/* Routing Scanner Untuk Kurir Memindai Paket */}
           <Stack.Screen name="Scan" component={ScanScreen} initialParams={{ mode: 'package' }} />
           <Stack.Screen name="OpenLocker" component={OpenLockerScreen} />
