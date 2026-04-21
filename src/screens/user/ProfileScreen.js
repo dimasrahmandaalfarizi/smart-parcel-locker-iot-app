@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Modal, TextInput, Switch, Alert, KeyboardAvoidingView, Platform, Clipboard
+  Modal, TextInput, Switch, Alert, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { globalStyles } from '../../styles/globalStyles';
@@ -46,7 +47,8 @@ const SwitchRow = ({ label, value, onChange, color = '#10B981' }) => (
 // ─────────────────────────────────────────────────────────────────
 // LAYAR UTAMA
 // ─────────────────────────────────────────────────────────────────
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen() {
+  const navigation = useNavigation(); // Akses root stack navigator
   const { userInfo, logout, updateUserName } = useAuth();
   const role = userInfo?.role?.toUpperCase() || 'USER';
 
@@ -74,24 +76,30 @@ export default function ProfileScreen({ navigation }) {
   // ─── Init ───
   useEffect(() => {
     (async () => {
-      // Cek ketersediaan sensor biometrik di perangkat ini
-      const compatible = await LocalAuthentication.hasHardwareAsync();
-      const enrolled = await LocalAuthentication.isEnrolledAsync();
-      setBiometricAvailable(compatible && enrolled);
+      try {
+        // Cek ketersediaan sensor biometrik di perangkat ini
+        const compatible = await LocalAuthentication.hasHardwareAsync();
+        const enrolled = await LocalAuthentication.isEnrolledAsync();
+        setBiometricAvailable(compatible && enrolled);
+      } catch {
+        setBiometricAvailable(false); // Graceful degradation di platform Web
+      }
 
       // Load preferensi yang sudah disimpan sebelumnya
-      const saved = await AsyncStorage.getItem('biometricEnabled');
-      if (saved !== null) setBiometricEnabled(JSON.parse(saved));
-
-      const savedTheme = await AsyncStorage.getItem('themeMode');
-      if (savedTheme) setThemeMode(savedTheme);
-
-      const savedNotif = await AsyncStorage.getItem('notifPrefs');
-      if (savedNotif) {
-        const prefs = JSON.parse(savedNotif);
-        setNotifParcel(prefs.parcel ?? true);
-        setNotifPenalty(prefs.penalty ?? true);
-        setNotifPromo(prefs.promo ?? false);
+      try {
+        const saved = await AsyncStorage.getItem('biometricEnabled');
+        if (saved !== null) setBiometricEnabled(JSON.parse(saved));
+        const savedTheme = await AsyncStorage.getItem('themeMode');
+        if (savedTheme) setThemeMode(savedTheme);
+        const savedNotif = await AsyncStorage.getItem('notifPrefs');
+        if (savedNotif) {
+          const prefs = JSON.parse(savedNotif);
+          setNotifParcel(prefs.parcel ?? true);
+          setNotifPenalty(prefs.penalty ?? true);
+          setNotifPromo(prefs.promo ?? false);
+        }
+      } catch (e) {
+        console.log('AsyncStorage read error:', e);
       }
     })();
   }, []);
@@ -125,32 +133,48 @@ export default function ProfileScreen({ navigation }) {
   // HANDLER — Biometrik
   // ─────────────────────────────────────────────────────────────────
   const handleToggleBiometric = async (value) => {
+    if (typeof LocalAuthentication.authenticateAsync !== 'function') {
+      Alert.alert('Tidak Didukung', 'Biometrik tidak tersedia di platform ini.');
+      return;
+    }
     if (value) {
-      // Minta user membuktikan biometrik sebelum mengaktifkan
-      const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Konfirmasi identitas Anda untuk mengaktifkan fitur ini',
-        cancelLabel: 'Batal',
-        disableDeviceFallback: false
-      });
-      if (!result.success) return; // Batal jika gagal autentikasi
+      try {
+        const result = await LocalAuthentication.authenticateAsync({
+          promptMessage: 'Konfirmasi identitas Anda untuk mengaktifkan fitur ini',
+          cancelLabel: 'Batal',
+          disableDeviceFallback: false
+        });
+        if (!result.success) return;
+      } catch (e) {
+        console.log('Biometric auth error:', e);
+        return;
+      }
     }
     setBiometricEnabled(value);
     await AsyncStorage.setItem('biometricEnabled', JSON.stringify(value));
   };
 
   const handleTestBiometric = async () => {
+    if (typeof LocalAuthentication.authenticateAsync !== 'function') {
+      if (typeof window !== 'undefined' && window.alert) window.alert('Biometrik tidak tersedia di browser. Gunakan HP fisik.');
+      return;
+    }
     setBiometricTesting(true);
-    const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: 'Uji Coba: Pindai Wajah atau Sidik Jari',
-      cancelLabel: 'Tutup',
-      disableDeviceFallback: false
-    });
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Uji Coba: Pindai Wajah atau Sidik Jari',
+        cancelLabel: 'Tutup',
+        disableDeviceFallback: false
+      });
+      const msg = result.success
+        ? '✅ Biometrik dikenali! Autentikasi akan aktif saat membuka loker berikutnya.'
+        : `❌ Autentikasi gagal: ${result.error || 'Tidak dikenali'}`;
+      if (typeof window !== 'undefined' && window.alert) window.alert(msg);
+      else Alert.alert('Hasil Uji Coba', msg);
+    } catch (e) {
+      console.log('Biometric test error:', e);
+    }
     setBiometricTesting(false);
-    const msg = result.success
-      ? '✅ Biometrik dikenali! Autentikasi akan aktif saat membuka loker berikutnya.'
-      : `❌ Autentikasi gagal: ${result.error || 'Tidak dikenali'}`;
-    if (typeof window !== 'undefined' && window.alert) window.alert(msg);
-    else Alert.alert('Hasil Uji Coba', msg);
   };
 
   // ─────────────────────────────────────────────────────────────────
@@ -180,6 +204,10 @@ export default function ProfileScreen({ navigation }) {
   const handleSaveTheme = async (mode) => {
     setThemeMode(mode);
     await AsyncStorage.setItem('themeMode', mode);
+    const themeNames = { dark: 'Liquid Dark Mode', light: 'Light Mode', system: 'Ikuti Sistem' };
+    const msg = `Tema berhasil diganti ke ${themeNames[mode]}. Berlaku penuh pada rilis produksi.`;
+    if (typeof window !== 'undefined' && window.alert) window.alert(msg);
+    else Alert.alert('Tema Disimpan ✅', msg);
   };
 
   // ─────────────────────────────────────────────────────────────────
