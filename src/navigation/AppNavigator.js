@@ -14,6 +14,8 @@ import PackageDetailScreen from '../screens/user/PackageDetailScreen';
 import PackageHistoryScreen from '../screens/user/PackageHistoryScreen';
 import PaymentHistoryScreen from '../screens/user/PaymentHistoryScreen';
 import NotificationScreen from '../screens/user/NotificationScreen';
+import LockerMapScreen from '../screens/user/LockerMapScreen';
+import SupportTicketScreen from '../screens/user/SupportTicketScreen';
 import ScanScreen from '../screens/courier/ScanScreen';
 import OpenLockerScreen from '../screens/user/OpenLockerScreen';
 import LockerKioskScreen from '../screens/admin/LockerKioskScreen';
@@ -57,6 +59,8 @@ export default function AppNavigator() {
           <Stack.Screen name="PackageHistory" component={PackageHistoryScreen} />
           <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
           <Stack.Screen name="Notifications" component={NotificationScreen} />
+          <Stack.Screen name="LockerMap" component={LockerMapScreen} />
+          <Stack.Screen name="SupportTicket" component={SupportTicketScreen} />
           <Stack.Screen name="AuditLog" component={AuditLogScreen} />
           <Stack.Screen name="AdminAnalytics" component={AdminAnalyticsScreen} />
           <Stack.Screen name="AdminUsers" component={AdminUsersScreen} />

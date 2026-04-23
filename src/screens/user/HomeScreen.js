@@ -202,11 +202,16 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.greetingText}>Halo, <Text style={{ color: colors.white }}>{firstName}!</Text> 👋</Text>
           <Text style={styles.subtitleText}>Terhubung ke Jaringan Pintu Cerdas</Text>
         </View>
-        {/* Profile button has been moved to Tab Navigator for cleaner UI */}
-        <TouchableOpacity style={styles.notificationBtn} onPress={() => navigation.navigate('Notifications')}>
-           <Ionicons name="notifications-outline" size={24} color={colors.white} />
-           <View style={styles.notificationDot} />
-        </TouchableOpacity>
+        {/* Navigasi Peta Loker & Notifikasi */}
+        <View style={{flexDirection: 'row', gap: 12}}>
+          <TouchableOpacity style={styles.notificationBtn} onPress={() => navigation.navigate('LockerMap')}>
+             <Ionicons name="map-outline" size={24} color={colors.white} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.notificationBtn} onPress={() => navigation.navigate('Notifications')}>
+             <Ionicons name="notifications-outline" size={24} color={colors.white} />
+             <View style={styles.notificationDot} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView 

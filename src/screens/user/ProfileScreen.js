@@ -433,9 +433,17 @@ export default function ProfileScreen() {
 
       {/* SECTION 3 */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Bantuan & Sistem</Text>
+        <Text style={styles.sectionTitle}>Pusat Bantuan</Text>
         <View style={styles.cardGroup}>
-          <SettingItem icon="help-buoy-outline" title="Bantuan & FAQ" subtitle="Jawaban pertanyaan umum" onPress={() => setActiveModal('faq')} />
+          <SettingItem icon="help-circle-outline" title="Tanya Jawab (FAQ)" subtitle="Pertanyaan yang sering diajukan" onPress={() => setActiveModal('faq')} />
+          <SettingItem icon="headset-outline" title="Laporkan Kendala Mesin" subtitle="Bantuan tiket darurat force-open" onPress={() => navigation.navigate('SupportTicket')} />
+        </View>
+      </View>
+
+      {/* SECTION 4 */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Sistem</Text>
+        <View style={styles.cardGroup}>
           <SettingItem icon="information-circle-outline" title="Versi Aplikasi" subtitle="SmartLocker v3.5 — React Native Edition" />
           <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginVertical: 8 }} />
           <SettingItem icon="log-out-outline" title="Keluar (Logout)" onPress={logout} isDestructive />

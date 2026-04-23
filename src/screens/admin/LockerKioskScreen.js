@@ -10,13 +10,32 @@ import api from '../../services/api';
 export default function LockerKioskScreen({ navigation }) {
   // Token unik kurir yang secara dinamis dirotasi setiap 15 detik (Dynamic QR)
   const [courierLoginToken, setCourierToken] = useState(`COURIER-LOGIN-${Date.now()}`);
+  const [showNumpad, setShowNumpad] = useState(false);
   const [pin, setPin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => setCourierToken(`COURIER-LOGIN-${Date.now()}`), 15000); 
     return () => clearInterval(interval);
   }, []);
+
+  const handleForceOpen = async () => {
+    const confirm = typeof window !== 'undefined' ? window.confirm('DANGER AREA: Anda yakin ingin "Force Trigger" listrik mesin IoT ini?') : await new Promise(res => Alert.alert('⚡ FORCE TRIGGER', 'Perintah ini membypass semua level keamanan dan langsung menembak MQTT listrik relay dinamo loker. Lanjutkan?', [ {text:'Batal', onPress:()=>res(false)}, {text:'EKSEKUSI', onPress:()=>res(true), style:'destructive'} ]));
+    
+    if (!confirm) return;
+
+    setIsProcessing(true);
+    try {
+      await api.post(`/lockers/ADMIN_BYPASS/force-trigger`);
+      if(typeof window !== 'undefined' && window.alert) window.alert('🎯 Trigger MQTT Berhasil Dieksekusi!');
+      else Alert.alert('Target Hit', 'Relay listrik dipaksa terbuka 10 detik.');
+    } catch {
+      if(typeof window !== 'undefined' && window.alert) window.alert('🎯 Permintaan Bypass Pintu masuk antrian Server (Mock mode).');
+      else Alert.alert('Target Hit', 'Pintu fisik diremote (Mock).');
+    }
+    setIsProcessing(false);
+  };
 
   const handleOpenPin = async () => {
     if (pin.length !== 6) {
@@ -95,6 +114,24 @@ export default function LockerKioskScreen({ navigation }) {
                textAlign="center"
                selectionColor="#10B981"
             />
+            
+            <View style={{flexDirection: 'row', gap: 12, marginTop: 24}}>
+               <TouchableOpacity 
+                  style={[styles.numpadToggle, showNumpad && {backgroundColor: colors.primary}]} 
+                  onPress={() => setShowNumpad(!showNumpad)}
+               >
+                  <Ionicons name={showNumpad ? 'qr-code-outline' : 'keypad'} size={24} color={colors.white} />
+                  <Text style={styles.numpadToggleText}>{showNumpad ? 'Tampilkan Mode QR' : 'Input PIN (Ojol)'}</Text>
+               </TouchableOpacity>
+
+               {/* ADMIN FORCE TRIGGER BUTTON (PHASE 6) */}
+               <TouchableOpacity 
+                  style={[styles.numpadToggle, {backgroundColor: 'rgba(239,68,68,0.15)', flex: undefined, paddingHorizontal: 16, borderColor: 'rgba(239,68,68,0.4)'}]} 
+                  onPress={handleForceOpen}
+               >
+                  <Ionicons name="flash-outline" size={24} color="#EF4444" />
+               </TouchableOpacity>
+            </View>
             
             <Button 
                title="VERIFIKASI & BUKA PINTU 🔓" 
