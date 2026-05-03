@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, Modal, RefreshControl, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import QRCode from 'react-native-qrcode-svg';
@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../../styles/globalStyles';
 import { colors } from '../../styles/colors';
 import { useAuth } from '../../hooks/useAuth';
+import { useSocket } from '../../context/SocketContext';
 import Button from '../../components/common/Button';
 import PackageCard from '../../components/package/PackageCard';
 import LockerCard from '../../components/locker/LockerCard';
@@ -23,6 +24,7 @@ export default function HomeScreen({ navigation }) {
   const [lockers, setLockers] = useState([]);
   const [myPackages, setMyPackages] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const { socket } = useSocket();
 
   const fetchLockers = async () => {
     try {
@@ -55,6 +57,21 @@ export default function HomeScreen({ navigation }) {
     if (role === 'USER') await fetchMyPackages();
     setRefreshing(false);
   };
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    // Dengarkan event dari backend
+    socket.on('locker_status_changed', (data) => {
+      console.log('Real-time locker update received:', data);
+      if (role === 'ADMIN') fetchLockers();
+      if (role === 'USER') fetchMyPackages();
+    });
+
+    return () => {
+      socket.off('locker_status_changed');
+    };
+  }, [socket, role]);
 
   const renderUserDashboard = () => (
     <View>
