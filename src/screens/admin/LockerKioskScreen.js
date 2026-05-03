@@ -27,7 +27,7 @@ export default function LockerKioskScreen({ navigation }) {
 
     setIsProcessing(true);
     try {
-      await api.post(`/lockers/ADMIN_BYPASS/force-trigger`);
+      await api.post(`/lockers/4/force-trigger`);
       if(typeof window !== 'undefined' && window.alert) window.alert('🎯 Trigger MQTT Berhasil Dieksekusi!');
       else Alert.alert('Target Hit', 'Relay listrik dipaksa terbuka 10 detik.');
     } catch {
