@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../../styles/globalStyles';
 import { colors } from '../../styles/colors';
@@ -43,6 +43,28 @@ export default function PackageDetailScreen({ navigation, route }) {
     setIsGenerating(false);
   };
 
+  const handlePayPenalty = async () => {
+    setIsProcessing(true);
+    try {
+      const response = await api.post('/payments/create', { trackingCode: trackingNumber });
+      const { redirect_url } = response.data;
+      
+      if (redirect_url) {
+        // Buka browser bawaan untuk halaman Midtrans Snap
+        await Linking.openURL(redirect_url);
+        
+        Alert.alert(
+          'Pembayaran Diproses ⏳', 
+          'Setelah Anda menyelesaikan pembayaran di jendela Midtrans, silakan refresh Beranda untuk memperbarui status paket dan pintu akan bisa dibuka.'
+        );
+      }
+    } catch (err) {
+      console.error('Payment creation failed:', err);
+      Alert.alert('Gagal', err.response?.data?.message || 'Tidak dapat memproses modul pembayaran saat ini. Pastikan backend Midtrans berjalan.');
+    }
+    setIsProcessing(false);
+  };
+
   const handleAmbilPaket = async () => {
     setIsProcessing(true);
     try {
@@ -63,10 +85,10 @@ export default function PackageDetailScreen({ navigation, route }) {
            
            if (typeof window !== 'undefined' && window.confirm) {
                const wantToPay = window.confirm(`AKSES LOKER TERKUNCI 🚨\n\n${penaltyMsg}\n\nApakah Anda ingin membayar sekarang?`);
-               if(wantToPay) { window.alert('Memanggil integrasi Midtrans...'); }
+               if(wantToPay) { handlePayPenalty(); }
            } else {
                Alert.alert('Akses Loker Terkunci 🚨', penaltyMsg, [
-                 { text: 'Bayar Sekarang', onPress: () => alert('Memanggil webhook Midtrans...') },
+                 { text: 'Bayar Sekarang', onPress: handlePayPenalty },
                  { text: 'Batal', style: 'cancel' }
                ]);
            }
@@ -138,12 +160,12 @@ export default function PackageDetailScreen({ navigation, route }) {
            />
         )}
 
-        {isProcessing ? (
+         {isProcessing ? (
            <ActivityIndicator size="large" color={colors.primary} />
         ) : (
            <Button 
              title={packageData.isPaid === false ? "Bayar Lunas Denda & Buka Kendali" : "Hadir Di Depan Loker? Buka Sekarang"} 
-             onPress={handleAmbilPaket} 
+             onPress={packageData.isPaid === false ? handlePayPenalty : handleAmbilPaket} 
              style={{ width: '100%', backgroundColor: packageData.isPaid === false ? '#EF4444' : colors.primary }}
            />
         )}
