@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { globalStyles } from '../../styles/globalStyles';
 import { colors } from '../../styles/colors';
 import { useAuth } from '../../hooks/useAuth';
+import { usePushNotifications } from '../../hooks/usePushNotifications';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 
@@ -50,6 +51,7 @@ const SwitchRow = ({ label, value, onChange, color = '#10B981' }) => (
 export default function ProfileScreen() {
   const navigation = useNavigation(); // Akses root stack navigator
   const { userInfo, logout, updateUserName } = useAuth();
+  const { expoPushToken } = usePushNotifications();
   const role = userInfo?.role?.toUpperCase() || 'USER';
 
   // Modal state
@@ -187,8 +189,8 @@ export default function ProfileScreen() {
 
     // Daftarkan ulang token Push ke Backend
     try {
-      const fakeFCM = `PushToken_${Platform.OS}_${Date.now()}`;
-      await api.post('/users/push-token', { pushToken: fakeFCM });
+      const tokenToSave = expoPushToken || `PushToken_${Platform.OS}_${Date.now()}`;
+      await api.post('/users/push-token', { pushToken: tokenToSave });
     } catch (e) { console.log('FCM re-sync backend error:', e); }
 
     setNotifSyncing(false);

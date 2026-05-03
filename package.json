@@ -17,6 +17,7 @@
     "axios": "^1.15.0",
     "expo": "^55.0.15",
     "expo-camera": "~55.0.15",
+    "expo-device": "~55.0.15",
     "expo-linear-gradient": "~55.0.13",
     "expo-local-authentication": "~55.0.13",
     "expo-notifications": "~55.0.19",
